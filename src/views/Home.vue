@@ -23,7 +23,7 @@
           </router-link>
         </div>
         <div class="pic goods">
-          <router-link to="/404">
+          <router-link to="/item">
             <button class="enter_button"></button>
           </router-link>
         </div>
