@@ -23,8 +23,8 @@
     </div>
     <div class="toggle-box" ref="_togglebox">
       <div class="list-box">
-        <div v-if="toggleType != '_star'" class="box-item" v-for="(item, index) in typeList" :key="index" @click="_activeType(item.name)" :class="{active:item.name == typeActive}">{{item.name}}</div>
-        <div v-if="toggleType == '_star'" class="box-item" v-for="(item, index) in starList" :key="index" @click="_activeStar(item.name)"  :class="{active:item.name == starActive}">{{item.name}}</div>
+        <div v-if="toggleType != '_star'" class="box-item" v-for="(item, index) in typeList.typeList" :key="index" @click="_activeType(item.id)" :class="{active:item.id == typeActive}">{{item.name}}</div>
+        <div v-if="toggleType == '_star'" class="box-item" v-for="(item, index) in starList" :key="index" @click="_activeStar(item.id)"  :class="{active:item.id == starActive}">{{item.name}}</div>
       </div>
       <button class="confirm-button" @click="_changeRoute()">确定</button>
     </div>
@@ -49,24 +49,17 @@ export default {
     return {
       msg: '我是材料菜单',
       scrollTop: 0,
-      typeActive: "全部",
-      starActive: "全部",
+      typeActive: "0",
+      starActive: "0",
       toggleType: "",
-      typeList: [ 
-        {name: "全部"},
-        {name: "樱色轮回"},
-        {name: "记忆战场"},
-        {name: "曜日关卡"},
-        {name: "地下军械"},
-        {name: "崩坏降临"},
-      ],
+      typeList: {},
       starList: [
-        {name: "全部"},
-        {name: "一星"},
-        {name: "二星"},
-        {name: "三星"},
-        {name: "四星"},
-        {name: "五星"}
+        {name: "全部", id: 0},
+        {name: "一星", id: 1},
+        {name: "二星", id: 2},
+        {name: "三星", id: 3},
+        {name: "四星", id: 4},
+        {name: "五星", id: 5}
       ]
     }
   },
@@ -137,15 +130,15 @@ export default {
       if(value != "") {
         router.push({path: "/item/list/search/" + value})
       } else {
-        router.push({path: "/item/list/全部/全部" + value})
+        router.push({path: "/item/list/0/0" + value})
       }
       this._resetToggleBox()
     },
-    _activeType(name) {
-      this.typeActive = name
+    _activeType(id) {
+      this.typeActive = id
     },
-    _activeStar(name) {
-      this.starActive = name
+    _activeStar(id) {
+      this.starActive = id
     },
     _changeRoute() {
       router.push({path: "/item/list/" + this.typeActive + "/" + this.starActive})
@@ -157,14 +150,35 @@ export default {
       removeClass(this.$refs._class, 'active')
       removeClass(this.$refs._star, 'active')
       removeClass(this.$refs._mask, 'active')
-    }
+    },
+    _initView() {
+      this.$http.get(this.HOST + "/Wiki/Material/MaterialTypeList",
+      {
+        before(request) {
+          if (this.previousRequest) {
+            this.previousRequest.abort();
+          }
+          this.previousRequest = request;
+        }
+      })
+      .then(response => {
+        this.typeList = Object.assign({}, this.typeList, JSON.parse(response.data));
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    },
+    
   },
   components: {
     BackTop
   },
   mounted() {
     window.addEventListener("scroll", this._handleScroll)
-    router.push({path: "/item/list/all/all"})
+    router.push({path: "/item/list/0/0"})
+  },
+  created() {
+    this._initView()
   }
 }
 </script>
@@ -338,7 +352,7 @@ export default {
 
   .toggle-box {
     transition: all .25s ease-in-out;
-    transform: translateY(rem(0));
+    transform: translateY(rem(-30));
     position: fixed;
     top: 0;
     left: 0;
@@ -358,6 +372,7 @@ export default {
         margin: rem(10) rem(7) 0 rem(7);
         height: rem(28);
         width: rem(75);
+        font-size: rem(12);
         background-color: #1c2b42;
         border-radius: rem(4);
         background-color: #DCDDDE;

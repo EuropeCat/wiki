@@ -3,7 +3,7 @@
     <div class="wrapper"> 
       <router-link v-for="(item, index) in itemList" :key="index" :to="'/item/detail/'+item.id">
         <div class="block" :class="{one: item.star==1, two: item.star==2, three: item.star==3, four: item.star==4, five: item.star==5}">
-        <div class="icon"></div>
+        <div class="icon" :style="{backgroundImage: 'url(' + HOST + item.icon + ')' }"></div>
         <div class="star" :class="{one: item.star==1, two: item.star==2, three: item.star==3, four: item.star==4, five: item.star==5}"></div>
       </div>
       </router-link>
@@ -17,108 +17,93 @@ export default {
   data () {
     return {
       msg: '我是材料列表',
-      itemList: [
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 1,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 2,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 3,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 4,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 4,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 3,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 3,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 3,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 3,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 2,
-          "type": "曜日材料"
-        },
-        {
-          "id": 5023,
-          "name": "雷霆意志",
-          "icon": "后台相对应的图片的地址",
-          "star": 2,
-          "type": "曜日材料"
-        }
-      ],
+      typeList: {},
+      itemList: [],
+      listStorage: [],
     }
   },
   methods: {
+    // 从服务器获取全部列表数据备用
     _initList() {
-      this.$http.get(this.HOST + "", {
+      this.$http.get(this.HOST + "/Wiki/Material/MaterialTypeList",
+      {
         before(request) {
-          if (this.previouseRequest) {
-            this.previouseRequest.abrot();
+          if (this.previousRequest) {
+            this.previousRequest.abort();
           }
-          this.previouseRequest = request;
+          this.previousRequest = request;
         }
       })
       .then(response => {
-        let itemList = JSON.parse(response.data);
-        this.itemList = Object.assign({}, this.itemList, itemList)
+        this.typeList = Object.assign({}, this.typeList, JSON.parse(response.data));
+        this.typeList.typeList.forEach(e => {
+          this.$http.get(this.HOST + "/Wiki/Material/MaterialList/" + e.id,
+          {
+            before(request) {
+              if (this.previousRequest) {
+                this.previousRequest.abort();
+              }
+              this.previousRequest = request;
+            }
+          })
+          .then(response => {
+            this.listStorage.push({id: e.id, list: JSON.parse(response.data)})
+            if(e.id == this.$route.params.type) {
+              this._changeList();
+            }
+          })
+          .catch(error => {
+            console.log(error);
+          });
+        });
       })
       .catch(error => {
         console.log(error);
-        console.log("error 已经被显示了");
-        this.$router.push({path: "/404"});
-      })
+      });
+    },
+    // 根据路由改变现实对应分类的材料列表
+    _changeList() {
+      const that = this
+      that.itemList = []
+      that.listStorage.forEach(e => {
+        if(e.id == that.$route.params.type) {
+          e.list.itemList.forEach(solo => {
+            if(!(that.$route.params.star != 0 && solo.star != that.$route.params.star)){
+              that.itemList.push(solo)
+            }
+          });
+        }
+      });
+    },
+    _searchList() {
+      console.log("执行了搜索");
+      const that = this
+      that.itemList = []
+      that.listStorage.forEach(e => {
+        e.list.itemList.forEach(solo => {
+          if(solo.name.indexOf(that.$route.params.star) != -1){
+            console.log(solo.name)
+            console.log(that.$route.params.star)
+            that.itemList.push(solo)
+          }
+        });
+      });
     }
-  }
+  },
+  created() {
+    this._initList();
+  },
+  watch: {
+    $route (to, from) {
+      if(to.params.type == "search") {
+        this._searchList();
+      } else {
+        if (to.name == "itemList") {
+          this._changeList();
+        }
+      }
+    }
+  },
 }
 </script>
 
@@ -157,6 +142,7 @@ export default {
         position: absolute;
         background-image: url(../../assets/images/turbo.png);
         background-size: rem(40);
+        background-repeat: no-repeat;
         top: rem(10);
         left: rem(12);
         
