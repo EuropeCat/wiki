@@ -51,6 +51,10 @@ export default {
             background: url('../../assets/images/BlockTitleIcon2.png') no-repeat;
             background-size: rem(24);
         }
+        &.blockTitleIcon3{
+            background: url('../../assets/images/BlockTitleIcon3.png') no-repeat;
+            background-size: rem(24);
+        }
     }
     .title{
         flex: 1;

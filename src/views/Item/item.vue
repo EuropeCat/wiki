@@ -7,27 +7,31 @@
         <h2>材料库</h2>
       </header>
       <!-- 搜索和过滤工具路由导航 -->
-      <section class="func-bar">
-        <div class="func-box">
-          <div class="search-bar">
-            <input type="text" class="search-text" ref="_search">
-            <div class="line-fix"></div>
-            <button class="search-btn" @click="_searchItem()"></button>
+      <transition name="fade" mode="out-in">
+        <section class="func-bar" v-show="this.$route.name == 'itemList'">
+          <div class="func-box">
+            <div class="search-bar">
+              <input type="text" class="search-text" ref="_search">
+              <div class="line-fix"></div>
+              <button class="search-btn" @click="_searchItem()"></button>
+            </div>
+            <div class="filter">
+              <div ref="_class" class="block" @click="_showClassBox()">分类</div>
+              <div ref="_star" class="block" @click="_showStarBox()">星级</div>
+            </div>
           </div>
-          <div class="filter">
-            <div ref="_class" class="block" @click="_showClassBox()">分类</div>
-            <div ref="_star" class="block" @click="_showStarBox()">星级</div>
-          </div>
+        </section>
+      </transition>
+    </div>
+    <transition name="fade" mode="out-in">
+      <div class="toggle-box" ref="_togglebox" v-show="this.$route.name == 'itemList'">
+        <div class="list-box">
+          <div v-if="toggleType != '_star'" class="box-item" v-for="(item, index) in typeList.typeList" :key="index" @click="_activeType(item.id)" :class="{active:item.id == typeActive}">{{item.name}}</div>
+          <div v-if="toggleType == '_star'" class="box-item" v-for="(item, index) in starList" :key="index" @click="_activeStar(item.id)"  :class="{active:item.id == starActive}">{{item.name}}</div>
         </div>
-      </section>
-    </div>
-    <div class="toggle-box" ref="_togglebox">
-      <div class="list-box">
-        <div v-if="toggleType != '_star'" class="box-item" v-for="(item, index) in typeList.typeList" :key="index" @click="_activeType(item.id)" :class="{active:item.id == typeActive}">{{item.name}}</div>
-        <div v-if="toggleType == '_star'" class="box-item" v-for="(item, index) in starList" :key="index" @click="_activeStar(item.id)"  :class="{active:item.id == starActive}">{{item.name}}</div>
+        <button class="confirm-button" @click="_changeRoute()">确定</button>
       </div>
-      <button class="confirm-button" @click="_changeRoute()">确定</button>
-    </div>
+    </transition>
     <div class="mask" ref="_mask"></div>
     <transition name="fade">
       <BackTop :scrollTop="scrollTop"></BackTop>
@@ -185,9 +189,10 @@ export default {
 
 <style lang="scss" scoped>
 .item {
-  height: rem(8000);
+  min-height: rem(700);
+  padding-bottom: rem(60);
   background-color: rgb(243, 243, 243);
-  padding-top: rem(120);
+  padding-top: rem(80);
   .item-wrapper {
     position: fixed;
     top: 0;
@@ -352,7 +357,7 @@ export default {
 
   .toggle-box {
     transition: all .25s ease-in-out;
-    transform: translateY(rem(-30));
+    transform: translateY(rem(-200));
     position: fixed;
     top: 0;
     left: 0;

@@ -110,7 +110,7 @@ export default {
 <style lang="scss" scoped>
 .item_list {
   .wrapper {
-    margin-top: rem(40);
+    margin-top: rem(80);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
